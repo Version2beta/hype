@@ -69,8 +69,7 @@ func LoadAllContent(dirPath string) ([]*Content, error) {
 	return contents, nil
 }
 
-func LoadContent(id string) (*Content, error) {
-	path := "./content/" + id + ".md"
+func LoadContent(path string) (*Content, error) {
 	content, err := loadContentFile(path)
 	if err != nil {
 		return nil, err

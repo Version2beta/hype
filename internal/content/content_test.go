@@ -8,11 +8,10 @@ import (
 )
 
 func createTestData(t *testing.T) string {
-	dir, err := os.MkdirTemp("", "hype-test-content")
+	dir, err := os.MkdirTemp("", "hype-test-content-")
 	if err != nil {
 		t.Fatalf("failed to create temp directory: %v", err)
 	}
-	defer os.RemoveAll(dir)
 
 	testMarkdown1 := `
 ---
@@ -28,7 +27,7 @@ author:
 This is the first test post.
 `
 	// create temporary markdown files in the test directory
-	err = os.WriteFile(filepath.Join(dir, "test1.md"), []byte(testMarkdown1), 0666)
+	err = os.WriteFile(filepath.Join(dir, "example-post.md"), []byte(testMarkdown1), 0666)
 	if err != nil {
 		t.Fatalf("failed to create test file: %v", err)
 	}
@@ -56,6 +55,7 @@ This is the first test post.
 
 func TestLoadAllContent(t *testing.T) {
 	dir := createTestData(t)
+	defer os.RemoveAll(dir)
 
 	// load content from the test directory
 	contents, err := LoadAllContent(dir)
@@ -70,23 +70,26 @@ func TestLoadAllContent(t *testing.T) {
 }
 
 func TestLoadContent(t *testing.T) {
+	dir := createTestData(t)
+	defer os.RemoveAll(dir)
+
 	tests := []struct {
-		id     string
+		path   string
 		exists bool
 	}{
-		{"example-post", true},
+		{filepath.Join(dir, "example-post.md"), true},
 		{"invalid", false},
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.id, func(t *testing.T) {
-			content, err := LoadContent(tt.id)
+		t.Run(tt.path, func(t *testing.T) {
+			content, err := LoadContent(tt.path)
 			if tt.exists && err != nil {
 				t.Errorf("LoadContent() error: %s", err)
 			} else if !tt.exists && err == nil {
 				t.Error("LoadContent() should have returned an error, but did not")
 			}
-			if tt.exists && !reflect.DeepEqual(content.Metadata["title"], "Example Post") {
+			if tt.exists && !reflect.DeepEqual(content.Metadata["title"], "Test Post 1") {
 				t.Errorf("LoadContent() returned incorrect metadata: %v", content.Metadata)
 			}
 		})
